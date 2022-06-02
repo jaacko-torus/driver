@@ -11,7 +11,7 @@ object Main {
         """
           |<html>
           |  <head><title>Title</title></head>
-          |  <body><p>Paragraph.</p></body>
+          |  <body><p>Paragraph 1.</p></body>
 		  |</html>
           |""".stripMargin
 
