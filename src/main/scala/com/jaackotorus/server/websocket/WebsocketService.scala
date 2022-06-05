@@ -9,17 +9,18 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 class WebsocketService extends Directives {
     implicit val actorSystem: ActorSystem = ActorSystem()
 
-    val websocketRoute: Route = get {
-        handleWebSocketMessages(greeter)
+    val websocketRoute: Route = path("websocket") {
+        get {
+            handleWebSocketMessages(greeter)
+        }
     }
 
     def greeter: Flow[Message, Message, Any] =
-        Flow[Message].mapConcat {
-            case tm: TextMessage =>
-                TextMessage(Source.single("Hello ") ++ tm.textStream ++ Source.single("!")) :: Nil
-            case bm: BinaryMessage =>
-                // ignore binary messages but drain content to avoid the stream being clogged
-                bm.dataStream.runWith(Sink.ignore)
-                Nil
+        Flow[Message].collect { case TextMessage.Strict(t) =>
+            TextMessage(t)
+//            case BinaryMessage.Strict(b) =>
+//                // ignore binary messages but drain content to avoid the stream being clogged
+//                // b.runWith(Sink.ignore)
+//                Nil
         }
 }
