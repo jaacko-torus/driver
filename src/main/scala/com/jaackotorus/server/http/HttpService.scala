@@ -1,7 +1,5 @@
 package com.jaackotorus.server.http
 
-package com.jaackotorus.server.http
-
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
@@ -13,9 +11,14 @@ import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 
 object HttpService {
-    val content = "<h1>Say hello to akka-http</h1>"
+    val content =
+        "<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Commodi corporis dolorum ea excepturi impedit nostrum quasi quisquam soluta voluptate voluptatem. Est, necessitatibus, repudiandae! Aliquam cumque necessitatibus neque repellendus repudiandae. Cupiditate.</p>"
 
-    val route: Route = path("http") {
+    val serviceHost = "localhost"
+    val servicePort = 8080
+    val servicePath = "http"
+
+    val route: Route = path(servicePath) {
         get {
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, content))
         }
@@ -27,12 +30,9 @@ object HttpService {
         // needed for the future flatMap/onComplete in the end
         implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
-        val host = "localhost"
-        val port = 8080
+        val bindingFuture = Http().newServerAt(serviceHost, servicePort).bind(route)
 
-        val bindingFuture = Http().newServerAt(host, port).bind(route)
-
-        println(s"Server now online. Please navigate to https://$host:$port/hello")
+        println(s"Server now online. Please navigate to http://$serviceHost:$servicePort/$servicePath")
         println("Press RETURN to stop...")
 
         StdIn.readLine() // let it run until user presses return
