@@ -2,10 +2,9 @@ import dayjs from "https://cdn.skypack.dev/dayjs";
 
 let socket = new WebSocket("ws://localhost:8081/greeter?username=example-username")
 
-document.getElementById("messaging_button").addEventListener("click", function (e) {
-    send_data()
-    console.log("...")
-})
+const $messaging_data = document.getElementById("messaging_data")
+const $messaging_button = document.getElementById("messaging_button")
+const $chat_area = document.getElementById("chat_area")
 
 /**
  * @param {string | null} data
@@ -14,9 +13,21 @@ const send_data = (data = null) => {
     if (data !== null) socket.send(data)
 
     /** @type {string} */
-    const body = document.getElementById("messaging_data").value
+    const body = $messaging_data.value
     socket.send(body)
 }
+
+$messaging_button.onclick = e => {send_data()}
+
+document.onkeydown = e => {
+    if (e.key === "Enter" && document.activeElement === $messaging_data) {
+        send_data()
+    }
+    if (e.key === "Escape") {
+        $messaging_data.blur()
+    }
+    return true;
+};
 
 /**
  * Spawns message in html
@@ -35,7 +46,7 @@ function MaterializeMessage(username, timestamp, body) {
     // ------------------------------------------------------------------------
 
     $message.classList.add("message")
-    $header.classList.add("message_header")
+    $header.classList.add("message_head")
     $username.classList.add("message_username")
     $timestamp.classList.add("message_timestamp")
     $body.classList.add("message_body")
@@ -50,27 +61,29 @@ function MaterializeMessage(username, timestamp, body) {
     $body.append($p)
     $message.append($header, $body)
 
-    document.getElementById("chat_area").append($message)
+    $chat_area.append($message)
+
+    $message.scrollIntoView()
 }
 
 /**
- * @param {Event} e
+ * @param {string} username
+ * @param {string} timestamp
+ * @param {string} body
  */
+function on_message(username, timestamp, body) {
+    MaterializeMessage(username, timestamp, `[message] Data received from server: ${body}`)
+}
+
+
+socket.onmessage = event =>
+    on_message("[server]", dayjs().format("HH:mm:ss"), `[message] Data received from server: ${event.data}`)
+
 socket.onopen = e => {
     MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), "[open] Connection established")
     socket.send("My name is John");
 };
 
-/**
- * @param {MessageEvent} event
- */
-socket.onmessage = event => {
-    MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), `[message] Data received from server: ${event.data}`)
-};
-
-/**
- * @param {CloseEvent} event
- */
 socket.onclose = event => {
     if (event.wasClean) {
         MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`)
@@ -80,9 +93,6 @@ socket.onclose = event => {
     }
 };
 
-/**
- * @param {Event & { message?: string }} error
- */
 socket.onerror = error => {
     MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), `[error] ${error.message}`)
 };

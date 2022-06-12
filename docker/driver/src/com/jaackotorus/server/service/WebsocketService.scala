@@ -42,17 +42,17 @@ class WebsocketService(
 
     val chatroomActor: ActorRef = actorSystem.actorOf(Props(new ChatroomActor()))
 
-    val userActorSource: Source[Event, ActorRef] =
-        Source.actorRef[Event](
-          {
-              case akka.actor.Status.Success(s: CompletionStrategy) => s
-              case akka.actor.Status.Success(_)                     => CompletionStrategy.draining
-              case akka.actor.Status.Success                        => CompletionStrategy.draining
-          },
-          { case akka.actor.Status.Failure(cause) => cause },
-          5,
-          OverflowStrategy.fail
-        )
+    val userActorSource: Source[Event, ActorRef] = {
+        val completionMatcher: PartialFunction[Any, CompletionStrategy] = {
+            case akka.actor.Status.Success(s: CompletionStrategy) => s
+            case akka.actor.Status.Success(_)                     => CompletionStrategy.draining
+            case akka.actor.Status.Success                        => CompletionStrategy.draining
+        }
+
+        val failureMatcher: PartialFunction[Any, Throwable] = { case akka.actor.Status.Failure(cause) => cause }
+
+        Source.actorRef[Event](completionMatcher, failureMatcher, 5, OverflowStrategy.fail)
+    }
 
     type Found = Source[Event, ActorRef]#Shape => FlowShape[Message, TextMessage]
     type Required = Shape => FlowShape[Message, TextMessage]
@@ -101,7 +101,7 @@ class WebsocketService(
 
     def start(): Future[Http.ServerBinding] = {
         val bindingFuture: Future[Http.ServerBinding] =
-            Http().newServerAt(interface, port).bind(route(service))
+            Http().newServerAt(interface, port).bind(route(service _))
 
         println(s"Server online at http://$interface:$port/")
 

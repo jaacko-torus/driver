@@ -1,0 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code&family=Montserrat:ital,wght@0,200;0,400;0,600;1,400;1,600&display=swap");
+
+html {
+    height: 100%;
+}
+
+body {
+    background-color: black;
+    color: white;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 400;
+    margin: 1em;
+    height: calc(100% - 2em);
+    display: grid;
+    grid-template: "chat" 1fr / 1fr;
+}
+
+#chat {
+    min-height: 100%;
+    grid-area: chat;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#chat_area {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.message {
+    margin-top: 0.3em;
+    margin-bottom: 0.2em;
+    padding: 0.5em;
+}
+
+.message:hover {
+    background-color: #333333;
+}
+
+.message_head {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.message_head::selection {
+    background: transparent;
+}
+
+.message_username, .message_timestamp {
+    font-weight: 200;
+}
+
+.message_body {
+    padding-left: 1em;
+}
+
+.message_body p {
+    margin: 0;
+    padding-top: 0.5em;
+}
+
+#messaging_area {
+    margin-top: 1.5em;
+    margin-left: 0.5em;
+    border-top: white 1px dashed;
+    padding-top: 2em;
+}
+
+#messaging_area label {
+    display: flex;
+    gap: 0.5em
+}
+
+#messaging_data {
+    background-color: black;
+    color: white;
+    border: white 1px solid;
+    padding: 1ex;
+    margin: 0;
+    flex-grow: 11;
+}
+
+#messaging_data:focus, #messaging_data:hover {
+    outline: white 1px solid;
+}
+
+#messaging_button {
+    background-color: black;
+    color: white;
+    border: white 1px solid;
+    padding: 1ex 1em;
+    margin: 0;
+    flex-grow: 1;
+}
+
+#messaging_button:focus, #messaging_button:hover {
+    outline: white 1px solid;
+}
+
