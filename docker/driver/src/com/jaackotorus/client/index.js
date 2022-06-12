@@ -14,10 +14,14 @@ const send_data = (data = null) => {
 
     /** @type {string} */
     const body = $messaging_data.value
+    $messaging_data.value = ""
     socket.send(body)
 }
 
-$messaging_button.onclick = e => {send_data()}
+$messaging_button.onclick = e => {
+    send_data()
+    $messaging_button.blur()
+}
 
 document.onkeydown = e => {
     if (e.key === "Enter" && document.activeElement === $messaging_data) {
@@ -75,9 +79,8 @@ function on_message(username, timestamp, body) {
     MaterializeMessage(username, timestamp, `[message] Data received from server: ${body}`)
 }
 
-
 socket.onmessage = event =>
-    on_message("[server]", dayjs().format("HH:mm:ss"), `[message] Data received from server: ${event.data}`)
+    on_message("[message]", dayjs().format("HH:mm:ss"), event.data)
 
 socket.onopen = e => {
     MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), "[open] Connection established")

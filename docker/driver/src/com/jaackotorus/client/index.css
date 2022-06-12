@@ -76,7 +76,7 @@ body {
 
 #messaging_data {
     background-color: black;
-    color: white;
+    color: #aaaaaa;
     border: white 1px solid;
     padding: 1ex;
     margin: 0;
@@ -85,6 +85,10 @@ body {
 
 #messaging_data:focus, #messaging_data:hover {
     outline: white 1px solid;
+}
+
+#messaging_data:focus {
+    color: white;
 }
 
 #messaging_button {
