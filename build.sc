@@ -3,7 +3,7 @@ import mill.api._
 import mill.scalalib._
 
 object driver extends ScalaModule {
-    override def mainClass: T[Option[String]] = Option("com.jaackotorus.server.Server")
+    override def mainClass: T[Option[String]] = Option("com.jaackotorus.Server")
 
     override def scalaVersion: T[String] = "2.13.8"
     

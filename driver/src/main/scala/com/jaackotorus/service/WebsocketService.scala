@@ -1,29 +1,32 @@
-package com.jaackotorus.server.service
+package com.jaackotorus.service
 
 import akka.NotUsed
 import akka.actor.{ActorRef, ActorSystem, Props, Status}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.{Directives, Route}
+import akka.stream._
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
-import akka.stream.{CompletionStrategy, FlowShape, OverflowStrategy, Shape, UniformFanInShape}
-
-import com.jaackotorus.server.actor.ChatroomActor
+import com.jaackotorus.actor.ChatroomActor
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 object WebsocketService {
-    import Directives.{path, get, parameter, handleWebSocketMessages}
+    import Directives.{get, handleWebSocketMessages, parameter, path}
+
+    val interface: String = "localhost"
+    val port: Int = 8081
+    val routeGenerator: (String => Flow[Message, Message, Any]) => Route = service =>
+        path("greeter") {
+            (get & parameter("username")) { username =>
+                handleWebSocketMessages(service(username))
+            }
+        }
 
     def apply(
-        interface: String = "localhost",
-        port: Int = 8081,
-        routeGenerator: (String => Flow[Message, Message, Any]) => Route = service =>
-            path("greeter") {
-                (get & parameter("username")) { username =>
-                    handleWebSocketMessages(service(username))
-                }
-            }
+        interface: String = interface,
+        port: Int = port,
+        routeGenerator: (String => Flow[Message, Message, Any]) => Route = routeGenerator
     ): WebsocketService = {
         new WebsocketService(interface, port, routeGenerator)
     }
@@ -33,14 +36,14 @@ class WebsocketService(
     interface: String,
     port: Int,
     route: (String => Flow[Message, Message, Any]) => Route
-) extends Service(interface, port, route)
+) extends ServiceBase(interface, port, route)
     with Directives {
     import ChatroomActor.{Event, User}
 
-    implicit val actorSystem: ActorSystem = ActorSystem()
-    implicit val executionContext: ExecutionContextExecutor = actorSystem.dispatcher
+    implicit val system: ActorSystem = ActorSystem("WebsocketServiceSystem")
+    implicit val context: ExecutionContextExecutor = system.dispatcher
 
-    val chatroomActor: ActorRef = actorSystem.actorOf(Props(new ChatroomActor()))
+    val chatroomActor: ActorRef = system.actorOf(Props(new ChatroomActor()))
 
     val userActorSource: Source[Event, ActorRef] = {
         val completionMatcher: PartialFunction[Any, CompletionStrategy] = {
@@ -53,9 +56,6 @@ class WebsocketService(
 
         Source.actorRef[Event](completionMatcher, failureMatcher, 5, OverflowStrategy.fail)
     }
-
-    type Found = Source[Event, ActorRef]#Shape => FlowShape[Message, TextMessage]
-    type Required = Shape => FlowShape[Message, TextMessage]
 
     def service(username: String): Flow[Message, TextMessage, ActorRef] =
         Flow.fromGraph(GraphDSL.create(userActorSource) {

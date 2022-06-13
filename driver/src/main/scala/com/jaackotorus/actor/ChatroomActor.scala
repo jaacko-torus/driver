@@ -1,4 +1,4 @@
-package com.jaackotorus.server.actor
+package com.jaackotorus.actor
 
 import akka.actor._
 
