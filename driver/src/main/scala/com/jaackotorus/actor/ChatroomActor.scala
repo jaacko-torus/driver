@@ -5,10 +5,12 @@ import akka.actor._
 import scala.collection.mutable
 
 object ChatroomActor {
+    trait Event
+
     case class User(name: String)
+
     case class `User&Actor`(user: User, actor: ActorRef)
 
-    trait Event
     object Event {
         case class None() extends Event
         case class UserJoined(user: User, actor: ActorRef) extends Event

@@ -17,15 +17,13 @@ object Server {
 
         StdIn.readLine()
 
-        bindingFutures.foreach {
-            case (service, bindingFuture) => {
-                implicit val system: ActorSystem = service.system
-                implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+        bindingFutures.foreach { case (service, bindingFuture) =>
+            implicit val system: ActorSystem = service.system
+            implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
-                bindingFuture
-                    .flatMap(_.unbind())
-                    .onComplete(_ => system.terminate())
-            }
+            bindingFuture
+                .flatMap(_.unbind())
+                .onComplete(_ => system.terminate())
         }
     }
 }

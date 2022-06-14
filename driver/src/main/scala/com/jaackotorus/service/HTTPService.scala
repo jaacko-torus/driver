@@ -2,7 +2,7 @@ package com.jaackotorus.service
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directives, Route}
 
 import scala.concurrent.Future
@@ -11,7 +11,7 @@ object HTTPService {
     import Directives._
 
     val interface: String = "localhost"
-    val port: Int = 8085
+    val port: Int = 8080
     val route: Route =
         get {
             (pathEndOrSingleSlash & redirectToTrailingSlashIfMissing(StatusCodes.TemporaryRedirect)) {

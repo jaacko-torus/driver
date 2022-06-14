@@ -57,6 +57,15 @@ class WebsocketService(
         Source.actorRef[Event](completionMatcher, failureMatcher, 5, OverflowStrategy.fail)
     }
 
+    def start(): Future[Http.ServerBinding] = {
+        val bindingFuture: Future[Http.ServerBinding] =
+            Http().newServerAt(interface, port).bind(route(service _))
+
+        println(s"Server online at http://$interface:$port/")
+
+        bindingFuture
+    }
+
     def service(username: String): Flow[Message, TextMessage, ActorRef] =
         Flow.fromGraph(GraphDSL.create(userActorSource) {
             implicit builder: GraphDSL.Builder[ActorRef] => (userActor: Source[Event, ActorRef]#Shape) =>
@@ -98,13 +107,4 @@ class WebsocketService(
 
                 FlowShape(messageToEvent.in, eventToMessage.out)
         })
-
-    def start(): Future[Http.ServerBinding] = {
-        val bindingFuture: Future[Http.ServerBinding] =
-            Http().newServerAt(interface, port).bind(route(service _))
-
-        println(s"Server online at http://$interface:$port/")
-
-        bindingFuture
-    }
 }
