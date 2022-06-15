@@ -1,21 +1,24 @@
 import mill._
-import mill.api._
 import mill.scalalib._
 
 object driver extends ScalaModule {
-    override def mainClass: T[Option[String]] = Option("com.jaackotorus.Server")
+    override def mainClass = Option("com.jaackotorus.Server")
 
-    override def scalaVersion: T[String] = "2.13.8"
+    override def scalaVersion = "2.13.8"
 
-    override def ivyDeps: T[Loose.Agg[Dep]] = Agg(
-      // typed
-      ivy"com.typesafe.akka::akka-actor-typed:2.6.8",
-      // stream
-      ivy"com.typesafe.akka::akka-stream:2.6.8",
-      ivy"com.typesafe.akka::akka-stream-testkit:2.6.8",
-      // http
-      ivy"com.typesafe.akka::akka-http-core:10.2.9",
-      ivy"com.typesafe.akka::akka-http-testkit:10.2.9",
-      ivy"com.typesafe.akka::akka-http-spray-json:10.2.9"
+    val akkaVersion = "2.6.8"
+    val akkaHttpVersion = "10.2.9"
+    override def ivyDeps = Agg(
+      // nscala time
+      ivy"com.github.nscala-time::nscala-time:2.30.0",
+      // akka typed
+      ivy"com.typesafe.akka::akka-actor-typed:$akkaVersion",
+      // akka stream
+      ivy"com.typesafe.akka::akka-stream:$akkaVersion",
+      ivy"com.typesafe.akka::akka-stream-testkit:$akkaVersion",
+      // akka http
+      ivy"com.typesafe.akka::akka-http-core:$akkaHttpVersion",
+      ivy"com.typesafe.akka::akka-http-testkit:$akkaHttpVersion",
+      ivy"com.typesafe.akka::akka-http-spray-json:$akkaHttpVersion"
     )
 }

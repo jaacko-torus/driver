@@ -8,10 +8,20 @@ import scala.io.StdIn
 
 object Server {
     def main(args: Array[String]): Unit = {
+
         val bindingFutures = List(
-          WebsocketService(),
-          HTTPService()
-        ).map(service => (service, service.start()))
+          {
+              implicit val system: ActorSystem = ActorSystem("WebsocketServiceSystem")
+              implicit val context: ExecutionContextExecutor = system.dispatcher
+              val service = WebsocketService()
+              (service, service.start())
+          }, {
+              implicit val system: ActorSystem = ActorSystem("HTTPServiceSystem")
+              implicit val context: ExecutionContextExecutor = system.dispatcher
+              val service = HTTPService()
+              (service, service.start())
+          }
+        )
 
         println("Press RETURN to stop...")
 

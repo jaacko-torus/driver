@@ -5,14 +5,14 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directives, Route}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
-object HTTPService {
+object HTTPService extends ServiceBaseTrait[Unit, HTTPService] {
     import Directives._
 
-    val interface: String = "localhost"
-    val port: Int = 8080
-    val route: Route =
+    override val interface: String = "localhost"
+    override val port: Int = 9000
+    override val routeGenerator: Unit => Route = _ =>
         get {
             (pathEndOrSingleSlash & redirectToTrailingSlashIfMissing(StatusCodes.TemporaryRedirect)) {
                 getFromResource("client/index.html")
@@ -21,8 +21,12 @@ object HTTPService {
             }
         }
 
-    def apply(interface: String = interface, port: Int = port, route: Route = route): HTTPService = {
-        new HTTPService(interface, port, _ => route)
+    override def apply(
+        interface: String = interface,
+        port: Int = port,
+        routeGenerator: Unit => Route = routeGenerator
+    )(implicit system: ActorSystem, context: ExecutionContextExecutor): HTTPService = {
+        new HTTPService(interface, port, routeGenerator)
     }
 }
 
@@ -30,9 +34,9 @@ class HTTPService(
     interface: String,
     port: Int,
     route: Unit => Route
-) extends ServiceBase(interface, port, route)
+)(implicit system: ActorSystem, context: ExecutionContextExecutor)
+    extends ServiceBase[Unit](interface, port, route)
     with Directives {
-    override implicit val system: ActorSystem = ActorSystem("HTTPServiceSystem")
 
     def start(): Future[Http.ServerBinding] = {
         val bindingFuture: Future[Http.ServerBinding] =

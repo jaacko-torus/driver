@@ -1,6 +1,8 @@
 import dayjs from "https://cdn.skypack.dev/dayjs";
 
-let socket = new WebSocket("ws://localhost:8081/greeter?username=example-username")
+let username = window.prompt("what is your username");
+
+let socket = new WebSocket(`ws://localhost:9001/greeter?username=${username}`)
 
 const $messaging_data = document.getElementById("messaging_data")
 const $messaging_button = document.getElementById("messaging_button")
@@ -10,12 +12,20 @@ const $chat_area = document.getElementById("chat_area")
  * @param {string | null} data
  */
 const send_data = (data = null) => {
-    if (data !== null) socket.send(data)
+    if (data !== null) {
+        let val = data.trim()
+        if (val === "") return
+        socket.send(val)
+        return
+    }
 
     /** @type {string} */
     const body = $messaging_data.value
     $messaging_data.value = ""
-    socket.send(body)
+
+    let val = body.trim()
+    if (val === "") return
+    socket.send(val)
 }
 
 $messaging_button.onclick = e => {
@@ -76,26 +86,33 @@ function MaterializeMessage(username, timestamp, body) {
  * @param {string} body
  */
 function on_message(username, timestamp, body) {
-    MaterializeMessage(username, timestamp, `[message] Data received from server: ${body}`)
+    MaterializeMessage(username, timestamp, body)
 }
 
-socket.onmessage = event =>
-    on_message("[message]", dayjs().format("HH:mm:ss"), event.data)
+socket.onmessage = event => {
+    const message = JSON.parse(event.data);
+    const events = {
+        "message": data => on_message(data.username, data.timestamp, data.message),
+        "user_joined": data => on_message("[server]", data.timestamp, `${data.username} has joined`),
+        "user_left": data => on_message("[server]", data.timestamp, `${data.username} has left`),
+    }
 
-socket.onopen = e => {
-    MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), "[open] Connection established")
-    socket.send("My name is John");
+    events[message.type](message.data)
+}
+
+socket.onopen = event => {
+    MaterializeMessage("[server]", dayjs().format("hh:mma"), "[open] Connection established")
 };
 
 socket.onclose = event => {
     if (event.wasClean) {
-        MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`)
+        MaterializeMessage("[server]", event.data.timestamp, `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`)
     } else {
         // server process killed or network down, event.code is *usually* 1006 in this case
-        MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), "[close] Connection died")
+        MaterializeMessage("[server]", event.data.timestamp, "[close] Connection died")
     }
 };
 
 socket.onerror = error => {
-    MaterializeMessage("[server]", dayjs().format("HH:mm:ss"), `[error] ${error.message}`)
+    MaterializeMessage("[server]", error?.data?.timestamp ?? dayjs().format("hh:mma"), `[error] ${error.message}`)
 };
