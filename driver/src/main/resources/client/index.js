@@ -1,4 +1,39 @@
+// @ts-check
+
+import "./lib/nodarkreader.min.js"
 import dayjs from "https://cdn.skypack.dev/dayjs";
+
+/** @typedef {{ matched: boolean, vars: Record<string,string>}} Theme */
+/** @type {Record<string, Theme>} */
+const themes = {
+    "dark": {
+        matched: window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches,
+        vars: {
+            "--background-color": "#000000",
+            "--background-color-focus": "#333333",
+            "--foreground-color": "#ffffff",
+            "--border-unfocused": "#aaaaaa",
+            "--font-weight-light": "200",
+            "--font-weight-normal": "400",
+            "--font-weight-bold": "600",
+        }
+    },
+    "light": {
+        matched: window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches,
+        vars: {
+            "--background-color": "#ffffff",
+            "--background-color-focus": "#eeeeee",
+            "--foreground-color": "#000000",
+            "--border-unfocused": "#555555",
+            "--font-weight-light": "300",
+            "--font-weight-normal": "400",
+            "--font-weight-bold": "500",
+        }
+    }
+}
+
+/** @type {keyof typeof themes} */
+let selected_theme = "dark"
 
 let username = window.prompt("what is your username");
 
@@ -7,6 +42,15 @@ let socket = new WebSocket(`ws://localhost:9001/greeter?username=${username}`)
 const $messaging_data = document.getElementById("messaging_data")
 const $messaging_button = document.getElementById("messaging_button")
 const $chat_area = document.getElementById("chat_area")
+const $toggle_theme = document.getElementById("toggle_theme")
+const $root = document.querySelector(":root");
+
+document.addEventListener("DOMContentLoaded", (e) => {
+    // console.log(themes)
+    [selected_theme] = Object.entries(themes).find(([theme, props]) => props.matched)
+    // console.log(selected_theme)
+    // selected_theme = used_theme
+})
 
 /**
  * @param {string | null} data
@@ -26,6 +70,30 @@ const send_data = (data = null) => {
     let val = body.trim()
     if (val === "") return
     socket.send(val)
+}
+
+const change_theme = (selected_theme) => {
+    const vars = themes[selected_theme].vars
+    const set_property = ([name, value]) => $root.style.setProperty(name, value)
+    Object.entries(vars).forEach(set_property)
+}
+
+const toggle_theme = () => {
+    switch (selected_theme) {
+        case "dark":
+            selected_theme = "light"
+            break
+        case "light":
+            selected_theme = "dark"
+            break
+        default:
+            return
+    }
+}
+
+$toggle_theme.onclick = e => {
+    toggle_theme()
+    change_theme(selected_theme)
 }
 
 $messaging_button.onclick = e => {

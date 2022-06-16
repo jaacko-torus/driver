@@ -7,33 +7,33 @@ import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 
 object Server {
-    def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
 
-        val bindingFutures = List(
-          {
-              implicit val system: ActorSystem = ActorSystem("WebsocketServiceSystem")
-              implicit val context: ExecutionContextExecutor = system.dispatcher
-              val service = WebsocketService()
-              (service, service.start())
-          }, {
-              implicit val system: ActorSystem = ActorSystem("HTTPServiceSystem")
-              implicit val context: ExecutionContextExecutor = system.dispatcher
-              val service = HTTPService()
-              (service, service.start())
-          }
-        )
+    val bindingFutures = List(
+      {
+        implicit val system: ActorSystem = ActorSystem("WebsocketServiceSystem")
+        implicit val context: ExecutionContextExecutor = system.dispatcher
+        val service = WebsocketService()
+        (service, service.start())
+      }, {
+        implicit val system: ActorSystem = ActorSystem("HTTPServiceSystem")
+        implicit val context: ExecutionContextExecutor = system.dispatcher
+        val service = HTTPService()
+        (service, service.start())
+      }
+    )
 
-        println("Press RETURN to stop...")
+    println("Press RETURN to stop...")
 
-        StdIn.readLine()
+    StdIn.readLine()
 
-        bindingFutures.foreach { case (service, bindingFuture) =>
-            implicit val system: ActorSystem = service.system
-            implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+    bindingFutures.foreach { case (service, bindingFuture) =>
+      implicit val system: ActorSystem = service.system
+      implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
-            bindingFuture
-                .flatMap(_.unbind())
-                .onComplete(_ => system.terminate())
-        }
+      bindingFuture
+        .flatMap(_.unbind())
+        .onComplete(_ => system.terminate())
     }
+  }
 }

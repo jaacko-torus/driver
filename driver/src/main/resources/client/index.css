@@ -1,25 +1,11 @@
-@media (prefers-color-scheme: dark), (prefers-color-scheme: no-preference) {
-    :root {
-        --background-color: black;
-        --background-color-focus: #333333;
-        --foreground-color: white;
-        --border-unfocused: #aaaaaa;
-        --font-weight-light: 200;
-        --font-weight-normal: 400;
-        --font-weight-bold: 600;
-    }
-}
-
-@media (prefers-color-scheme: light) {
-    :root {
-        --background-color: white;
-        --background-color-focus: #eeeeee;
-        --foreground-color: black;
-        --border-unfocused: #555555;
-        --font-weight-light: 300;
-        --font-weight-normal: 400;
-        --font-weight-bold: 500;
-    }
+:root {
+    --background-color: black;
+    --background-color-focus: #333333;
+    --foreground-color: white;
+    --border-unfocused: #aaaaaa;
+    --font-weight-light: 200;
+    --font-weight-normal: 400;
+    --font-weight-bold: 600;
 }
 
 html {
@@ -37,6 +23,24 @@ body {
     grid-template: "chat" 1fr / 1fr;
 }
 
+#toggle_theme {
+    position: absolute;
+    right: 1em;
+    background-color: var(--background-color);
+    width: 50px;
+    height: 50px;
+    border: var(--foreground-color) 2px solid;
+    border-radius: 100%;
+    box-shadow: 0 0 var(--background-color);
+    transition: 500ms linear;
+}
+
+#toggle_theme:hover {
+    cursor: pointer;
+    background-color: var(--foreground-color);
+    box-shadow: 3px 4px var(--border-unfocused);
+}
+
 #chat {
     min-height: 100%;
     grid-area: chat;
@@ -48,6 +52,7 @@ body {
 #chat_area {
     flex-grow: 1;
     overflow-y: auto;
+
 }
 
 .message {
@@ -122,5 +127,6 @@ body {
 
 #messaging_button:focus, #messaging_button:hover {
     outline: var(--foreground-color) 1px solid;
+    cursor: pointer;
 }
 

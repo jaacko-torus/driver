@@ -7,7 +7,7 @@ WORKDIR /root
 
 # scala
 RUN \
-	curl -fsL https://downloads.typesafe.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION.tgz | tar xfz - -C /root/ && \
+    curl -fsL https://downloads.typesafe.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION.tgz | tar xfz - -C /root/ && \
 	echo >> /root/.bashrc && \
 	echo "export PATH=~/scala-$SCALA_VERSION/bin:$PATH" >> /root/.bashrc
 
@@ -21,8 +21,7 @@ RUN \
 
 COPY . .
 
-ENV PORT=8080
+ENV HTTP_PORT=9000
+ENV WS_PORT=9001
 
-EXPOSE 8080
-
-CMD [ "mill", "driver.run" ]
+CMD [ "mill", "driver" ]
