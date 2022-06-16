@@ -15,11 +15,12 @@ object HTTPService extends ServiceBaseTrait[Unit, HTTPService] {
   override val routeGenerator: Unit => Route = _ =>
     get {
       (pathEndOrSingleSlash & redirectToTrailingSlashIfMissing(StatusCodes.TemporaryRedirect)) {
-        getFromResource("client/index.html")
+        getFromFile(s"$clientDir/index.html")
       } ~ {
-        getFromResourceDirectory("client")
+        getFromDirectory(clientDir)
       }
     }
+  val clientDir = "driver/src/main/resources/client"
 
   override def apply(
       interface: String = interface,

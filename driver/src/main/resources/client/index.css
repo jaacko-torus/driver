@@ -20,7 +20,7 @@ body {
     margin: 1em;
     height: calc(100% - 2em);
     display: grid;
-    grid-template: "chat" 1fr / 1fr;
+    grid-template: "chat" 1fr / 100%;
 }
 
 #toggle_theme {
@@ -52,7 +52,7 @@ body {
 #chat_area {
     flex-grow: 1;
     overflow-y: auto;
-
+    overflow-wrap: break-word;
 }
 
 .message {
@@ -104,8 +104,13 @@ body {
     outline: none;
     border: var(--foreground-color) 1px solid;
     padding: 1ex;
+    font-size: inherit;
+    font-weight: inherit;
+    font-family: inherit;
     margin: 0;
     flex-grow: 11;
+    resize: none;
+
 }
 
 #messaging_data:focus, #messaging_data:hover {
