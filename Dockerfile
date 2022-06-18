@@ -24,4 +24,4 @@ COPY . .
 ENV HTTP_PORT=9000
 ENV WS_PORT=9001
 
-CMD [ "mill", "driver" ]
+CMD [ "mill", "driver", "--interface=0.0.0.0" ]
