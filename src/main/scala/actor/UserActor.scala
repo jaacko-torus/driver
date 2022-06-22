@@ -1,6 +1,8 @@
-package com.jaackotorus.actor
+package com.jaackotorus
+package actor
 
 import akka.actor._
+
 import com.github.nscala_time.time.Imports.DateTime
 
 import scala.collection.mutable

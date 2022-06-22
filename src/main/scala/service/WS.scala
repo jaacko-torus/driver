@@ -1,4 +1,6 @@
-package com.jaackotorus.service
+package com.jaackotorus
+package service
+import actor.UserActor
 
 import akka.NotUsed
 import akka.actor.{ActorRef, ActorSystem, Props, Status}
@@ -8,15 +10,14 @@ import akka.http.scaladsl.server.{Directives, Route}
 import akka.stream._
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
 import com.github.nscala_time.time.Imports._
-import com.jaackotorus.actor.UserActor
+import com.jaackotorus.service.HTTP.{clientDir, interface, port, routeGenerator}
+import com.jaackotorus.service.WS.{interface, port, routeGenerator}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-object WebsocketService extends ServiceBaseTrait[String => Flow[Message, Message, Any], WebsocketService] {
+object WS extends ServiceTrait[String => Flow[Message, Message, Any], WS] {
   import Directives.{get, handleWebSocketMessages, parameter, path}
 
-  override val interface: String = "localhost"
-  override val port: Int = 9001
   override val routeGenerator: (String => Flow[Message, Message, Any]) => Route = service =>
     path("greeter") {
       (get & parameter("username")) { username =>
@@ -31,17 +32,17 @@ object WebsocketService extends ServiceBaseTrait[String => Flow[Message, Message
   )(implicit
       system: ActorSystem,
       context: ExecutionContextExecutor
-  ): WebsocketService = {
-    new WebsocketService(interface, port, routeGenerator)
+  ): WS = {
+    new WS(interface, port, routeGenerator)
   }
 }
 
-class WebsocketService(
+class WS(
     interface: String,
     port: Int,
     route: (String => Flow[Message, Message, Any]) => Route
 )(implicit system: ActorSystem, context: ExecutionContextExecutor)
-    extends ServiceBase[String => Flow[Message, Message, Any]](interface, port, route)
+    extends Service[String => Flow[Message, Message, Any]](interface, port, route)
     with Directives {
   import UserActor.Event
 
@@ -63,7 +64,7 @@ class WebsocketService(
     val bindingFuture: Future[Http.ServerBinding] =
       Http().newServerAt(interface, port).bind(route(service(_)))
 
-    println(s"Server online at http://$interface:$port/")
+    println(s"WebSocket server online at http://$interface:$port/")
 
     bindingFuture
   }

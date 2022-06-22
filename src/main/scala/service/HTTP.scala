@@ -1,49 +1,53 @@
-package com.jaackotorus.service
+package com.jaackotorus
+package service
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directives, Route}
 
+import scala.annotation.unused
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-object HTTPService extends ServiceBaseTrait[Unit, HTTPService] {
+object HTTP extends ServiceTrait[Unit, HTTP] {
   import Directives._
 
-  override val interface: String = "localhost"
-  override val port: Int = 9000
-  override val routeGenerator: Unit => Route = _ =>
+  def `routeGenerator+clientDir`(clientDir: String)(@unused value: Unit): Route =
     get {
       (pathEndOrSingleSlash & redirectToTrailingSlashIfMissing(StatusCodes.TemporaryRedirect)) {
+        println(clientDir)
         getFromFile(s"$clientDir/index.html")
       } ~ {
         getFromDirectory(clientDir)
       }
     }
-  val clientDir = "driver/src/main/resources/client"
+
+  val clientDir = ""
+
+  // def clientDir: Unit => String// = "src/main/resources/client"
 
   override def apply(
       interface: String = interface,
       port: Int = port,
       routeGenerator: Unit => Route = routeGenerator
-  )(implicit system: ActorSystem, context: ExecutionContextExecutor): HTTPService = {
-    new HTTPService(interface, port, routeGenerator)
+  )(implicit system: ActorSystem, context: ExecutionContextExecutor): HTTP = {
+    new HTTP(interface, port, routeGenerator)
   }
 }
 
-class HTTPService(
+class HTTP(
     interface: String,
     port: Int,
     route: Unit => Route
 )(implicit system: ActorSystem, context: ExecutionContextExecutor)
-    extends ServiceBase[Unit](interface, port, route)
+    extends Service[Unit](interface, port, route)
     with Directives {
 
   def start(): Future[Http.ServerBinding] = {
     val bindingFuture: Future[Http.ServerBinding] =
       Http().newServerAt(interface, port).bind(route(()))
 
-    println(s"Server online at http://$interface:$port/")
+    println(s"HTTP server online at http://$interface:$port/")
 
     bindingFuture
   }

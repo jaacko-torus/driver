@@ -1,4 +1,5 @@
-package com.jaackotorus.service
+package com.jaackotorus
+package service
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -7,9 +8,9 @@ import akka.http.scaladsl.server.Route
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-trait ServiceBaseTrait[T <: Any, U <: ServiceBase[T]] {
-  val interface = "localhost"
-  val port = 8080
+trait ServiceTrait[T <: Any, U <: Service[T]] {
+  val interface = "0.0.0.0"
+  val port = 0
   val routeGenerator: T => Route = _ => reject
   def apply(
       interface: String = interface,
@@ -21,7 +22,7 @@ trait ServiceBaseTrait[T <: Any, U <: ServiceBase[T]] {
   ): U
 }
 
-abstract class ServiceBase[T <: Any](
+abstract class Service[T <: Any](
     val interface: String,
     val port: Int,
     val route: T => Route

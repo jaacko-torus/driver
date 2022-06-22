@@ -1,32 +1,33 @@
 package com.jaackotorus
+import service.{HTTP, WS}
 
 import akka.actor.ActorSystem
-import com.jaackotorus.service.{HTTPService, WebsocketService}
+import akka.http.scaladsl.server.Route
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 
 object Server {
-//    val bindingFutures =
-//      List(WebsocketService, HTTPService)
-//        .map { Service =>
-//          implicit val system: ActorSystem = ActorSystem(s"${Service.getClass.getSimpleName.dropRight(1)}System")
-//          implicit val context: ExecutionContextExecutor = system.dispatcher
-//          val service = Service.apply()
-//          (service, service.start())
-//
+  //    val bindingFutures =
+  //      List(WebsocketService, HTTPService)
+  //        .map { Service =>
+  //          implicit val system: ActorSystem = ActorSystem(s"${Service.getClass.getSimpleName.dropRight(1)}System")
+  //          implicit val context: ExecutionContextExecutor = system.dispatcher
+  //          val service = Service.apply()
+  //          (service, service.start())
+  //
 
   def run(config: Program.Config): Unit = {
     val bindingFutures = List(
       {
         implicit val system: ActorSystem = ActorSystem("WebsocketServiceSystem")
         implicit val context: ExecutionContextExecutor = system.dispatcher
-        val service = WebsocketService(config.interface)
+        val service = WS(config.interface, 8081)
         (service, service.start())
       }, {
         implicit val system: ActorSystem = ActorSystem("HTTPServiceSystem")
         implicit val context: ExecutionContextExecutor = system.dispatcher
-        val service = HTTPService(config.interface)
+        val service = HTTP(config.interface, 8080, HTTP.`routeGenerator+clientDir`(config.client_source))
         (service, service.start())
       }
     )
