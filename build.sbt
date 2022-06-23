@@ -1,6 +1,22 @@
 import com.typesafe.config.ConfigFactory
-
+import sbtdocker.immutable
 import java.io.File
+
+//enablePlugins(DockerPlugin)
+enablePlugins(JavaAppPackaging)
+//enablePlugins(JavaAppPackaging)
+
+val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
+val dockerOrganization = conf.getString("driver.docker.organization")
+val akkaVersion = "2.6.8"
+val akkaHttpVersion = "10.2.9"
+
+ThisBuild / version := conf.getString("driver.build.version")
+ThisBuild / scalaVersion := conf.getString("driver.build.scalaVersion")
+ThisBuild / organizationName := conf.getString("driver.build.organizationName")
+ThisBuild / organization := conf.getString("driver.build.organization")
+ThisBuild / idePackagePrefix := Some(conf.getString("driver.build.organization"))
+//Compile / herokuAppName := "driver"
 
 lazy val root = (project in file("."))
   .settings(
@@ -30,22 +46,6 @@ lazy val root = (project in file("."))
       "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
     )
   )
-
-val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
-
-ThisBuild / version := conf.getString("driver.build.version")
-ThisBuild / scalaVersion := conf.getString("driver.build.scalaVersion")
-ThisBuild / organizationName := conf.getString("driver.build.organizationName")
-ThisBuild / organization := conf.getString("driver.build.organization")
-ThisBuild / idePackagePrefix := Some(conf.getString("driver.build.organization"))
-
-val dockerOrganization = conf.getString("driver.docker.organization")
-val akkaVersion = "2.6.8"
-val akkaHttpVersion = "10.2.9"
-
-import sbtdocker.immutable
-
-enablePlugins(DockerPlugin)
 
 docker / dockerfile := {
   // TODO: Research this part below

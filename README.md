@@ -29,7 +29,7 @@ To get the project running on docker, you should run the following commands:
 # Build
 sbt dockerBuildAndPush
 # Or `sbt docker` in the case a publish is unwanted.
-docker run -p 8080:8080 -p 8081:8081 jaacko-torus/driver:latest
+#docker run -p 8080:8080 -p 8081:8081 jaacko-torus/driver:latest
 # or whatever version tag you are using
 ```
 
