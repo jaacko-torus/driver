@@ -1,4 +1,6 @@
-package com.jaackotorus.service
+package com.jaackotorus
+package service
+import actor.UserActor
 
 import akka.NotUsed
 import akka.actor.{ActorRef, ActorSystem, Props, Status}
@@ -8,16 +10,13 @@ import akka.http.scaladsl.server.{Directives, Route}
 import akka.stream._
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
 import com.github.nscala_time.time.Imports._
-import com.jaackotorus.actor.UserActor
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-object WebsocketService extends ServiceBaseTrait[String => Flow[Message, Message, Any], WebsocketService] {
+object WS extends ServiceTrait[String => Flow[Message, Message, Any], WS] {
   import Directives.{get, handleWebSocketMessages, parameter, path}
 
-  override val interface: String = "localhost"
-  override val port: Int = 9001
-  override val routeGenerator: (String => Flow[Message, Message, Any]) => Route = service =>
+  val routeGenerator: (String => Flow[Message, Message, Any]) => Route = service =>
     path("greeter") {
       (get & parameter("username")) { username =>
         handleWebSocketMessages(service(username))
@@ -25,28 +24,25 @@ object WebsocketService extends ServiceBaseTrait[String => Flow[Message, Message
     }
 
   override def apply(
-      interface: String = interface,
-      port: Int = port,
-      routeGenerator: (String => Flow[Message, Message, Any]) => Route = routeGenerator
-  )(implicit
-      system: ActorSystem,
-      context: ExecutionContextExecutor
-  ): WebsocketService = {
-    new WebsocketService(interface, port, routeGenerator)
+      interface: String,
+      port: Int,
+      routeGenerator: (String => Flow[Message, Message, Any]) => Route
+  ): WS = {
+    new WS(interface, port, routeGenerator)
   }
 }
 
-class WebsocketService(
+class WS(
     interface: String,
     port: Int,
     route: (String => Flow[Message, Message, Any]) => Route
-)(implicit system: ActorSystem, context: ExecutionContextExecutor)
-    extends ServiceBase[String => Flow[Message, Message, Any]](interface, port, route)
+) extends Service[String => Flow[Message, Message, Any]](interface, port, route)
     with Directives {
   import UserActor.Event
 
+  implicit val system: ActorSystem = ActorSystem("WSServiceSystem")
+  implicit val context: ExecutionContextExecutor = system.dispatcher
   val chatroomActor: ActorRef = system.actorOf(Props(new UserActor()))
-
   val userActorSource: Source[Event, ActorRef] = {
     val completionMatcher: PartialFunction[Any, CompletionStrategy] = {
       case akka.actor.Status.Success(s: CompletionStrategy) => s
@@ -59,13 +55,10 @@ class WebsocketService(
     Source.actorRef[Event](completionMatcher, failureMatcher, 5, OverflowStrategy.fail)
   }
 
-  override def start(): Future[Http.ServerBinding] = {
+  override def start(): (WS, Future[Http.ServerBinding]) = {
     val bindingFuture: Future[Http.ServerBinding] =
       Http().newServerAt(interface, port).bind(route(service(_)))
-
-    println(s"Server online at http://$interface:$port/")
-
-    bindingFuture
+    (this, bindingFuture)
   }
 
   def service(username: String): Flow[Message, TextMessage, ActorRef] =
