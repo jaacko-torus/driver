@@ -22,15 +22,11 @@ object HTTP extends ServiceTrait[Unit, HTTP] {
       }
     }
 
-  val clientDir = ""
-
-  // def clientDir: Unit => String// = "src/main/resources/client"
-
   override def apply(
-      interface: String = interface,
-      port: Int = port,
-      routeGenerator: Unit => Route = routeGenerator
-  )(implicit system: ActorSystem, context: ExecutionContextExecutor): HTTP = {
+      interface: String,
+      port: Int,
+      routeGenerator: Unit => Route
+  ): HTTP = {
     new HTTP(interface, port, routeGenerator)
   }
 }
@@ -39,16 +35,13 @@ class HTTP(
     interface: String,
     port: Int,
     route: Unit => Route
-)(implicit system: ActorSystem, context: ExecutionContextExecutor)
-    extends Service[Unit](interface, port, route)
+) extends Service[Unit](interface, port, route)
     with Directives {
-
-  def start(): Future[Http.ServerBinding] = {
+  implicit val system: ActorSystem = ActorSystem("HTTPServiceSystem")
+  implicit val context: ExecutionContextExecutor = system.dispatcher
+  def start(): (HTTP, Future[Http.ServerBinding]) = {
     val bindingFuture: Future[Http.ServerBinding] =
       Http().newServerAt(interface, port).bind(route(()))
-
-    println(s"HTTP server online at http://$interface:$port/")
-
-    bindingFuture
+    (this, bindingFuture)
   }
 }

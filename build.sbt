@@ -1,23 +1,15 @@
 import com.typesafe.config.ConfigFactory
 
-val docker_organization = "jaackotorus"
-ThisBuild / version := "0.1.0"
-ThisBuild / scalaVersion := "2.13.8"
-ThisBuild / organizationName := "jaacko-torus"
-ThisBuild / organization := s"com.jaackotorus"
-ThisBuild / idePackagePrefix := Some(organization.value)
+import java.io.File
 
-Global / libraryDependencies += "com.typesafe" % "config" % "1.4.2"
-
-val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
-
-val akkaVersion = "2.6.8"
-val akkaHttpVersion = "10.2.9"
 lazy val root = (project in file("."))
   .settings(
     name := "driver",
     mainClass := Some(s"$organization.Program"),
     libraryDependencies := Seq(
+      // config parsing
+      "com.typesafe" % "config" % "1.4.2",
+
       // nscala time
       "com.github.nscala-time" %% "nscala-time" % "2.30.0",
 
@@ -39,6 +31,18 @@ lazy val root = (project in file("."))
     )
   )
 
+val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
+
+ThisBuild / version := conf.getString("driver.build.version")
+ThisBuild / scalaVersion := conf.getString("driver.build.scalaVersion")
+ThisBuild / organizationName := conf.getString("driver.build.organizationName")
+ThisBuild / organization := conf.getString("driver.build.organization")
+ThisBuild / idePackagePrefix := Some(conf.getString("driver.build.organization"))
+
+val dockerOrganization = conf.getString("driver.docker.organization")
+val akkaVersion = "2.6.8"
+val akkaHttpVersion = "10.2.9"
+
 import sbtdocker.immutable
 
 enablePlugins(DockerPlugin)
@@ -59,7 +63,10 @@ docker / dockerfile := {
   // TODO: give error in case file doesn't exist
 
   val cmd_basic = Seq("java", "-cp", all_classes.map(_.getName).mkString(":"), main_class)
-  val cmd_args = Seq("--interface=0.0.0.0", "--client-source=client")
+  val cmd_args = Seq(
+    s"--interface=${conf.getString("driver.docker.interface")}",
+    s"--client-source=${conf.getString("driver.docker.client-source")}"
+  )
 
   immutable.Dockerfile.empty
     .from("openjdk:18")
@@ -70,11 +77,11 @@ docker / dockerfile := {
     .add(jar, jar.getName)
     // client
     .add(client, "./client")
-    .expose(conf.getInt("ports.http"), conf.getInt("ports.ws"))
+    .expose(conf.getInt("driver.port.http"), conf.getInt("driver.port.ws"))
     .cmd(cmd_basic ++ cmd_args: _*)
 }
 
 docker / imageNames := Seq(
-  ImageName(s"$docker_organization/${name.value}:latest"),
-  ImageName(s"$docker_organization/${name.value}:v${version.value}")
+  ImageName(s"$dockerOrganization/${name.value}:latest"),
+  ImageName(s"$dockerOrganization/${name.value}:v${version.value}")
 )

@@ -1,20 +1,13 @@
 package com.jaackotorus
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config
 import scopt.OParser
 
-import java.io.File
 import java.net.URI
 import scala.util.{Failure, Success, Try}
 
 object Program {
-  val conf = ConfigFactory.load("application.conf") // .parseFile(new File("src/main/resources/application.conf"))
-  println(conf)
-
-  case class Config(
-      interface: String = "localhost",
-      client_source: String = "src/main/resources/client"
-  )
+  val conf: config.Config = config.ConfigFactory.load("application")
 
   def main(args: Array[String]): Unit = {
     val builder = OParser.builder[Config]
@@ -24,26 +17,40 @@ object Program {
       OParser.sequence(
         programName("driver"),
         head("driver", "0.1.0"),
+        version('v', "version"),
+        help('h', "help"),
         opt[String]("interface")
           .abbr("i")
           .action((interface, c) => c.copy(interface = interface))
-          .validate(value =>
-            if (isValidIpV4(value)) {
+          .validate(interface =>
+            if (isValidIpV4(interface)) {
               success
             } else {
-              failure("Interface is improperly formatted.")
+              failure(s"Interface \"$interface\" is not a valid a valid interface address")
             }
-          ),
+          )
+          .text("(default: localhost) interface address (e.x.: 0.0.0.0, localhost, 127.0.0.1)"),
         opt[String]("client-source")
           .abbr("cs")
           .action((client_source, c) => c.copy(client_source = client_source))
-          .validate(value =>
-            if (isValidURI(value)) {
+          .validate(client_source =>
+            if (isValidURI(client_source)) {
               success
             } else {
-              failure("Client source must be a valid URI")
+              failure(s"Client source \"$client_source\" is not a valid URI")
             }
           )
+          .text(
+            "(default: src/main/resources/client) directory to be considered the client root. It should have an `index.html` file inside"
+          ),
+        opt[Int]("port-http")
+          .abbr("ph")
+          .action((port_http, c) => c.copy(port_http = port_http))
+          .text("(default: 8080) port for the client HTTP service (e.x.: 80, 8080, 9000)"),
+        opt[Int]("port-ws")
+          .abbr("pw")
+          .action((port_ws, c) => c.copy(port_ws = port_ws))
+          .text("(default: 8081) port for the client WS service")
       )
     }
 
@@ -65,4 +72,11 @@ object Program {
     val n = raw"((1?)(\d?)\d|2[0-4]\d|25[0-5])".r
     (raw"($n\.){3}$n|localhost").r.matches(string)
   }
+
+  case class Config(
+      interface: String = conf.getString("driver.interface"),
+      client_source: String = conf.getString("driver.client-source"),
+      port_http: Int = conf.getInt("driver.port.http"),
+      port_ws: Int = conf.getInt("driver.port.ws")
+  )
 }

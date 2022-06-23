@@ -1,11 +1,14 @@
 package com.jaackotorus
-import service.{HTTP, WS}
+import service.{HTTP, Service, WS}
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.Http.ServerBinding
+import akka.http.scaladsl.model.ws.Message
+import akka.stream.scaladsl.Flow
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
+import scala.language.existentials
 
 object Server {
   //    val bindingFutures =
@@ -17,24 +20,30 @@ object Server {
   //          (service, service.start())
   //
 
+  // TODO: merge Config & Conf
   def run(config: Program.Config): Unit = {
-    val DEFAULT_PORT_HTTP = 8080
-    val PORT_HTTP = sys.env.getOrElse("PORT_HTTP", DEFAULT_PORT_HTTP.toString).toIntOption.getOrElse(DEFAULT_PORT_HTTP)
+    type y = List[
+      (
+          Service[_ >: (String => Flow[Message, Message, Any]) with Unit],
+          Future[ServerBinding]
+      )
+    ]
+    val bindingFutures: y = List(
+      WS(
+        config.interface,
+        config.port_ws,
+        WS.routeGenerator
+      ),
+      HTTP(
+        config.interface,
+        config.port_http,
+        HTTP.`routeGenerator+clientDir`(config.client_source)
+      )
+    ).map(_.start())
 
-    val bindingFutures = List(
-      {
-        implicit val system: ActorSystem = ActorSystem("WebsocketServiceSystem")
-        implicit val context: ExecutionContextExecutor = system.dispatcher
-        val service = WS(config.interface, 8081)
-        (service, service.start())
-      }, {
-        implicit val system: ActorSystem = ActorSystem("HTTPServiceSystem")
-        implicit val context: ExecutionContextExecutor = system.dispatcher
-        val service = HTTP(config.interface, 8080, HTTP.`routeGenerator+clientDir`(config.client_source))
-        (service, service.start())
-      }
-    )
-
+    bindingFutures.foreach { case (service, _) =>
+      println(s"${service.getClass.getSimpleName} service running on: ${config.interface}:${service.port}")
+    }
     println("Press [RETURN] to stop...")
     StdIn.readLine()
 
