@@ -1,12 +1,16 @@
 package com.jaackotorus
 
-import akka.http.scaladsl.model.Uri.Path
+import com.typesafe.config.{Config, ConfigFactory}
 import scopt.OParser
 
-import java.net.URL
+import java.io.File
+import java.net.URI
 import scala.util.{Failure, Success, Try}
 
 object Program {
+  val conf = ConfigFactory.load("application.conf") // .parseFile(new File("src/main/resources/application.conf"))
+  println(conf)
+
   case class Config(
       interface: String = "localhost",
       client_source: String = "src/main/resources/client"
@@ -46,13 +50,12 @@ object Program {
     OParser.parse(parser, args, Config()) match {
       case Some(config) =>
         Server.run(config)
-      case _ => ???
+      case _ =>
     }
   }
 
   def isValidURI(string: String): Boolean = {
-
-    Try(new URL(string).toURI) match {
+    Try(new URI(string)) match {
       case Success(_) => true
       case Failure(_) => false
     }

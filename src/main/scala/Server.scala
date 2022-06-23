@@ -18,6 +18,9 @@ object Server {
   //
 
   def run(config: Program.Config): Unit = {
+    val DEFAULT_PORT_HTTP = 8080
+    val PORT_HTTP = sys.env.getOrElse("PORT_HTTP", DEFAULT_PORT_HTTP.toString).toIntOption.getOrElse(DEFAULT_PORT_HTTP)
+
     val bindingFutures = List(
       {
         implicit val system: ActorSystem = ActorSystem("WebsocketServiceSystem")

@@ -1,48 +1,36 @@
 # Driver
 
-## Dev setup
+## Server
 
-Make sure to run the following commands before starting development. Bloop is needed regardless of whether using
-IntelliJ or metals. This project was built using IntelliJ so there are no guarantees it will work properly in metals.
+To get the server up and running, run the following commands:
 
 ```shell
 git clone https://github.com/jaacko-torus/driver
 cd driver
+sbt
+run
+# or:
+# `run [options]`.
+# `run --help` for more options.
+# Alternatively: `sbt "run [options]"`.
 ```
 
-```shell
-mill mill.bsp.BSP/install
-mill mill.scalalib.GenIdea/idea
-```
+## For devs
 
-```shell
-# sbt "project X" clean "~ compile"
-sbt run
-```
+This project was created with IntelliJ, and has not been tested with metals.
+This means that no other development server is *actively* supported.
+Make sure to do all development in the [dev branch][dev-branch].
 
-### IntelliJ folder tags:
+### Docker
 
-```
-driver @ content root
-└── src
-    ├── main
-    │   ├── resources @ resources root
-    │   │   └── client @ exclude
-    │   │       └── ...
-    │   └── scala @ source root
-    │       └── ...
-    └── test
-        └── scala @ test root
-            └── ...
-```
-
-# Docker
+To get the project running on docker, you should run the following commands:
 
 ```shell
 # Build
-sbt docker
-# Build, create image, and push to DockerHub
 sbt dockerBuildAndPush
-#docker build -t jaacko-torus/driver:0.1.0 .
-#docker run -p 9000:9000 -p 9001:9001 jaacko-torus/driver:0.1.0
+# Or `sbt docker` in the case a publish is unwanted.
+docker run -p 8080:8080 -p 8081:8081 jaacko-torus/driver:latest
+# or whatever version tag you are using
 ```
+
+[dev-branch]: https://github.com/jaacko-torus/driver/tree/dev
