@@ -46,7 +46,7 @@ object Program {
         opt[Int]("port-http")
           .abbr("ph")
           .action((port_http, c) => c.copy(port_http = port_http))
-          .text("(default: 8080) port for the client HTTP service (e.x.: 80, 8080, 9000)"),
+          .text("(default: 80) port for the client HTTP service (e.x.: 80, 8080, 9000)"),
         opt[Int]("port-ws")
           .abbr("pw")
           .action((port_ws, c) => c.copy(port_ws = port_ws))
