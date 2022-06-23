@@ -6,7 +6,11 @@ Make sure to run the following commands before starting development. Bloop is ne
 IntelliJ or metals. This project was built using IntelliJ so there are no guarantees it will work properly in metals.
 
 ```sh
-# cd driver
+git clone https://github.com/jaacko-torus/driver
+cd driver
+```
+
+```sh
 mill mill.bsp.BSP/install
 mill mill.scalalib.GenIdea/idea
 ```
@@ -25,4 +29,11 @@ driver @ content root
     └── test
         └── scala @ test root
             └── ...
+```
+
+# Docker
+
+```shell
+docker build -t jaacko-torus/driver:0.1.0 .
+docker run -p 9000:9000 -p 9001:9001 jaacko-torus/driver:0.1.0
 ```
