@@ -1,10 +1,10 @@
 import com.typesafe.config.ConfigFactory
-import sbtdocker.immutable
 import java.io.File
 
-//enablePlugins(DockerPlugin)
-enablePlugins(JavaAppPackaging)
-//enablePlugins(JavaAppPackaging)
+enablePlugins(
+  JavaAppPackaging,
+  sbtdocker.DockerPlugin
+)
 
 val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
 val dockerOrganization = conf.getString("driver.docker.organization")
@@ -16,7 +16,6 @@ ThisBuild / scalaVersion := conf.getString("driver.build.scalaVersion")
 ThisBuild / organizationName := conf.getString("driver.build.organizationName")
 ThisBuild / organization := conf.getString("driver.build.organization")
 ThisBuild / idePackagePrefix := Some(conf.getString("driver.build.organization"))
-//Compile / herokuAppName := "driver"
 
 lazy val root = (project in file("."))
   .settings(
@@ -61,14 +60,13 @@ docker / dockerfile := {
   val client = new File(resources, "client")
 
   // TODO: give error in case file doesn't exist
-
   val cmd_basic = Seq("java", "-cp", all_classes.map(_.getName).mkString(":"), main_class)
   val cmd_args = Seq(
     s"--interface=${conf.getString("driver.docker.interface")}",
     s"--client-source=${conf.getString("driver.docker.client-source")}"
   )
 
-  immutable.Dockerfile.empty
+  sbtdocker.immutable.Dockerfile.empty
     .from("openjdk:18")
     .workDir("/root")
     // dependencies

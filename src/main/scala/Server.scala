@@ -39,7 +39,7 @@ object Server {
         config.port_http,
         HTTP.`routeGenerator+clientDir`(config.client_source)
       )
-    ).map(_.start())
+    ).map(_.start)
 
     bindingFutures.foreach { case (service, _) =>
       println(s"${service.getClass.getSimpleName} service running on: ${config.interface}:${service.port}")

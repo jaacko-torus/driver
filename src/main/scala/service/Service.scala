@@ -25,5 +25,5 @@ abstract class Service[T <: Any](
 ) {
   implicit val system: ActorSystem
   implicit val context: ExecutionContextExecutor
-  def start(): (Service[T], Future[Http.ServerBinding])
+  def start: (Service[T], Future[Http.ServerBinding])
 }

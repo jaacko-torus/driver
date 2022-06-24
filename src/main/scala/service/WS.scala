@@ -23,13 +23,11 @@ object WS extends ServiceTrait[String => Flow[Message, Message, Any], WS] {
       }
     }
 
-  override def apply(
+  def apply(
       interface: String,
       port: Int,
       routeGenerator: (String => Flow[Message, Message, Any]) => Route
-  ): WS = {
-    new WS(interface, port, routeGenerator)
-  }
+  ): WS = new WS(interface, port, routeGenerator)
 }
 
 class WS(
@@ -42,6 +40,7 @@ class WS(
 
   implicit val system: ActorSystem = ActorSystem("WSServiceSystem")
   implicit val context: ExecutionContextExecutor = system.dispatcher
+
   val chatroomActor: ActorRef = system.actorOf(Props(new UserActor()))
   val userActorSource: Source[Event, ActorRef] = {
     val completionMatcher: PartialFunction[Any, CompletionStrategy] = {
@@ -55,11 +54,8 @@ class WS(
     Source.actorRef[Event](completionMatcher, failureMatcher, 5, OverflowStrategy.fail)
   }
 
-  override def start(): (WS, Future[Http.ServerBinding]) = {
-    val bindingFuture: Future[Http.ServerBinding] =
-      Http().newServerAt(interface, port).bind(route(service(_)))
-    (this, bindingFuture)
-  }
+  def start: (WS, Future[Http.ServerBinding]) =
+    (this, Http().newServerAt(interface, port).bind(route(service(_))))
 
   def service(username: String): Flow[Message, TextMessage, ActorRef] =
     Flow.fromGraph(GraphDSL.create(userActorSource) {
