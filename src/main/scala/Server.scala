@@ -1,12 +1,9 @@
 package com.jaackotorus
-import service.{HTTP, Service, WS}
+import service.{HTTP, WS}
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http.ServerBinding
-import akka.http.scaladsl.model.ws.Message
-import akka.stream.scaladsl.Flow
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 import scala.language.existentials
 

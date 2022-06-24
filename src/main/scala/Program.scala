@@ -52,7 +52,6 @@ object Program {
           .action((port_ws, c) => c.copy(port_ws = port_ws))
           .text("(default: 8081) port for the client WS service"),
         opt[Boolean]("interactive")
-          .abbr("i")
           .action((interactive, c) => c.copy(interactive = interactive))
           .text("(default: false) server in interactive mode")
       )

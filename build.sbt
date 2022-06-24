@@ -2,7 +2,6 @@ import com.typesafe.config.ConfigFactory
 import sbtdocker.DockerPlugin.autoImport.docker
 
 import java.io.File
-import scala.collection.Seq
 
 enablePlugins(
   JavaAppPackaging,
@@ -60,7 +59,8 @@ lazy val root = (project in file("."))
       // TODO: Research this part below
       val jar: File = (Compile / packageBin / sbt.Keys.`package`).value
       val managed_classes = (Compile / managedClasspath).value
-      val main_class = (Compile / packageBin / mainClass).value.getOrElse(sys.error("Expected exactly one main class"))
+      val main_class =
+        (Compile / packageBin / mainClass).value.getOrElse(sys.error("Expected exactly one main class"))
       val resources = (Compile / resourceDirectory).value
 
       // Make a colon separated classpath with the JAR file
