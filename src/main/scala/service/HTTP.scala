@@ -15,7 +15,6 @@ object HTTP extends ServiceTrait[Unit, HTTP] {
   def `routeGenerator+clientDir`(clientDir: String)(@unused value: Unit): Route =
     get {
       (pathEndOrSingleSlash & redirectToTrailingSlashIfMissing(StatusCodes.TemporaryRedirect)) {
-        println(clientDir)
         getFromFile(s"$clientDir/index.html")
       } ~ {
         getFromDirectory(clientDir)

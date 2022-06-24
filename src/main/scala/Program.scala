@@ -26,7 +26,7 @@ object Program {
             if (isValidIpV4(interface)) {
               success
             } else {
-              failure(s"Interface \"$interface\" is not a valid a valid interface address")
+              failure(s"Interface \"${interface}\" is not a valid a valid interface address")
             }
           )
           .text("(default: localhost) interface address (e.x.: 0.0.0.0, localhost, 127.0.0.1)"),
@@ -37,7 +37,7 @@ object Program {
             if (isValidURI(client_source)) {
               success
             } else {
-              failure(s"Client source \"$client_source\" is not a valid URI")
+              failure(s"Client source \"${client_source}\" is not a valid URI")
             }
           )
           .text(
@@ -50,7 +50,11 @@ object Program {
         opt[Int]("port-ws")
           .abbr("pw")
           .action((port_ws, c) => c.copy(port_ws = port_ws))
-          .text("(default: 8081) port for the client WS service")
+          .text("(default: 8081) port for the client WS service"),
+        opt[Boolean]("interactive")
+          .abbr("i")
+          .action((interactive, c) => c.copy(interactive = interactive))
+          .text("(default: false) server in interactive mode")
       )
     }
 
@@ -77,6 +81,7 @@ object Program {
       interface: String = conf.getString("driver.interface"),
       client_source: String = conf.getString("driver.client-source"),
       port_http: Int = conf.getInt("driver.port.http"),
-      port_ws: Int = conf.getInt("driver.port.ws")
+      port_ws: Int = conf.getInt("driver.port.ws"),
+      interactive: Boolean = conf.getBoolean("driver.interactive")
   )
 }

@@ -22,38 +22,35 @@ object Server {
 
   // TODO: merge Config & Conf
   def run(config: Program.Config): Unit = {
-    type y = List[
-      (
-          Service[_ >: (String => Flow[Message, Message, Any]) with Unit],
-          Future[ServerBinding]
-      )
-    ]
-    val bindingFutures: y = List(
+    val bindingFutures = List(
       WS(
         config.interface,
         config.port_ws,
         WS.routeGenerator
-      ),
+      ).start,
       HTTP(
         config.interface,
         config.port_http,
         HTTP.`routeGenerator+clientDir`(config.client_source)
-      )
-    ).map(_.start)
+      ).start
+    )
 
     bindingFutures.foreach { case (service, _) =>
       println(s"${service.getClass.getSimpleName} service running on: ${config.interface}:${service.port}")
     }
+
     println("Press [RETURN] to stop...")
     StdIn.readLine()
 
-    bindingFutures.foreach { case (service, bindingFuture) =>
-      implicit val system: ActorSystem = service.system
-      implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+    if (config.interactive) {
+      bindingFutures.foreach { case (service, bindingFuture) =>
+        implicit val system: ActorSystem = service.system
+        implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
-      bindingFuture
-        .flatMap(_.unbind())
-        .onComplete(_ => system.terminate())
+        bindingFuture
+          .flatMap(_.unbind())
+          .onComplete(_ => system.terminate())
+      }
     }
   }
 }
