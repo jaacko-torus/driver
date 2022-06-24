@@ -16,6 +16,7 @@ ThisBuild / scalaVersion := conf.getString("driver.build.scalaVersion")
 ThisBuild / organizationName := conf.getString("driver.build.organizationName")
 ThisBuild / organization := conf.getString("driver.build.organization")
 ThisBuild / idePackagePrefix := Some(conf.getString("driver.build.organization"))
+ThisBuild / mainClass := Some(s"$organization.Program")
 
 lazy val root = (project in file("."))
   .settings(
