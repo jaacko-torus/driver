@@ -3,13 +3,13 @@ import com.typesafe.config.ConfigFactory
 
 import java.io.File
 
-enablePlugins(
-  JavaAppPackaging
-//  sbtdocker.DockerPlugin
-)
+//enablePlugins(
+//  JavaAppPackaging
+////  sbtdocker.DockerPlugin
+//)
 
 val conf = ConfigFactory.parseFile(new File("src/main/resources/application.conf"))
-val dockerOrganization = conf.getString("driver.docker.organization")
+//val dockerOrganization = conf.getString("driver.docker.organization")
 val akkaVersion = "2.6.8"
 val akkaHttpVersion = "10.2.9"
 
@@ -26,8 +26,8 @@ Global / excludeLintKeys += idePackagePrefix
 
 lazy val root = (project in file("."))
   .enablePlugins(
-    JavaAppPackaging,
-    sbtdocker.DockerPlugin
+    JavaAppPackaging // ,
+//    sbtdocker.DockerPlugin
   )
   .settings(
     name := "driver",
