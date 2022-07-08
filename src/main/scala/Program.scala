@@ -18,11 +18,9 @@ object Program {
         version('v', "version"),
         help('h', "help"),
         opt[Int]("port-http")
-          .abbr("ph")
           .action((port_http, c) => c.copy(port_http = port_http))
           .text(s"(default: ${conf.port.http}) port for the client HTTP service (e.x.: 80, 8080, 9000)"),
         opt[Int]("port-ws")
-          .abbr("pw")
           .action((port_ws, c) => c.copy(port_ws = port_ws))
           .text(s"(default: ${conf.port.ws}) port for the client WS service"),
         opt[String]("interface")
@@ -36,11 +34,7 @@ object Program {
             }
           )
           .text(s"(default: ${conf.interface}) interface address (e.x.: 0.0.0.0, localhost, 127.0.0.1)"),
-        )
-      opt[Boolean]("interactive")
-          .action((interactive, c) => c.copy(interactive = interactive))
-          .text(s"(default: ${conf.interactive}) server in interactive mode")
-        ,opt[String]("client-source")
+        opt[String]("client-source")
           .abbr("cs")
           .action((client_source, c) => c.copy(client_source = client_source))
           .validate(client_source =>
@@ -50,16 +44,27 @@ object Program {
               failure(s"Client source \"$client_source\" is not a valid URI")
             }
           )
-          /** EndMarker */
-          .text(
-            s"(default: ${conf.client_source}) directory to be considered the client root. It should have an `index.html` file inside"
-          )
           .text(
             s"(default: ${conf.client_source}) directory to be considered the client root. It should have an `index.html` file inside"
           ),
         opt[Boolean]("interactive")
           .action((interactive, c) => c.copy(interactive = interactive))
-          .text(s"(default: ${conf.interactive}) server in interactive mode")
+          .text(s"(default: ${conf.interactive}) server in interactive mode"),
+        opt[Boolean]("localhost")
+          .action((localhost, c) =>
+            if (localhost) {
+              c.copy(
+                port_http = conf.port.http,
+                port_ws = conf.port.ws,
+                interface = conf.interface,
+                client_source = conf.client_source,
+                interactive = conf.interactive
+              )
+            } else {
+              c
+            }
+          )
+          .text(s"(default: ${conf.localhost}) use localhost settings")
       )
     }
 
@@ -93,12 +98,11 @@ object Program {
     val interface: String = app_conf.getString("driver.interface")
     val client_source: String = app_conf.getString("driver.client-source")
     val interactive: Boolean = app_conf.getBoolean("driver.interactive")
+    val localhost: Boolean = app_conf.getBoolean("driver.localhost")
   }
 
   case class CLIConfig(
-      port_http: Int = conf
-        /** EndMarker */
-        .port.http.port.http,
+      port_http: Int = conf.port.http,
       port_ws: Int = conf.port.ws,
       interface: String = conf.interface,
       client_source: String = conf.client_source,
