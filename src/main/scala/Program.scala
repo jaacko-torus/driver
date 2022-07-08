@@ -7,10 +7,8 @@ import java.net.URI
 import scala.util.{Failure, Success, Try}
 
 object Program {
-  val conf: config.Config = config.ConfigFactory.load("application")
-
   def main(args: Array[String]): Unit = {
-    val builder = OParser.builder[Config]
+    val builder = OParser.builder[CLIConfig]
 
     val parser = {
       import builder._
@@ -19,6 +17,14 @@ object Program {
         head("driver", "0.1.0"),
         version('v', "version"),
         help('h', "help"),
+        opt[Int]("port-http")
+          .abbr("ph")
+          .action((port_http, c) => c.copy(port_http = port_http))
+          .text(s"(default: ${conf.port.http}) port for the client HTTP service (e.x.: 80, 8080, 9000)"),
+        opt[Int]("port-ws")
+          .abbr("pw")
+          .action((port_ws, c) => c.copy(port_ws = port_ws))
+          .text(s"(default: ${conf.port.ws}) port for the client WS service"),
         opt[String]("interface")
           .abbr("i")
           .action((interface, c) => c.copy(interface = interface))
@@ -26,38 +32,38 @@ object Program {
             if (isValidIpV4(interface)) {
               success
             } else {
-              failure(s"Interface \"${interface}\" is not a valid a valid interface address")
+              failure(s"Interface \"$interface\" is not a valid a valid interface address")
             }
           )
-          .text("(default: localhost) interface address (e.x.: 0.0.0.0, localhost, 127.0.0.1)"),
-        opt[String]("client-source")
+          .text(s"(default: ${conf.interface}) interface address (e.x.: 0.0.0.0, localhost, 127.0.0.1)"),
+        )
+      opt[Boolean]("interactive")
+          .action((interactive, c) => c.copy(interactive = interactive))
+          .text(s"(default: ${conf.interactive}) server in interactive mode")
+        ,opt[String]("client-source")
           .abbr("cs")
           .action((client_source, c) => c.copy(client_source = client_source))
           .validate(client_source =>
             if (isValidURI(client_source)) {
               success
             } else {
-              failure(s"Client source \"${client_source}\" is not a valid URI")
+              failure(s"Client source \"$client_source\" is not a valid URI")
             }
           )
+          /** EndMarker */
           .text(
-            "(default: src/main/resources/client) directory to be considered the client root. It should have an `index.html` file inside"
+            s"(default: ${conf.client_source}) directory to be considered the client root. It should have an `index.html` file inside"
+          )
+          .text(
+            s"(default: ${conf.client_source}) directory to be considered the client root. It should have an `index.html` file inside"
           ),
-        opt[Int]("port-http")
-          .abbr("ph")
-          .action((port_http, c) => c.copy(port_http = port_http))
-          .text("(default: 80) port for the client HTTP service (e.x.: 80, 8080, 9000)"),
-        opt[Int]("port-ws")
-          .abbr("pw")
-          .action((port_ws, c) => c.copy(port_ws = port_ws))
-          .text("(default: 8081) port for the client WS service"),
         opt[Boolean]("interactive")
           .action((interactive, c) => c.copy(interactive = interactive))
-          .text("(default: false) server in interactive mode")
+          .text(s"(default: ${conf.interactive}) server in interactive mode")
       )
     }
 
-    OParser.parse(parser, args, Config()) match {
+    OParser.parse(parser, args, CLIConfig()) match {
       case Some(config) =>
         Server.run(config)
       case _ =>
@@ -76,11 +82,26 @@ object Program {
     (raw"($n\.){3}$n|localhost").r.matches(string)
   }
 
-  case class Config(
-      interface: String = conf.getString("driver.interface"),
-      client_source: String = conf.getString("driver.client-source"),
-      port_http: Int = conf.getInt("driver.port.http"),
-      port_ws: Int = conf.getInt("driver.port.ws"),
-      interactive: Boolean = conf.getBoolean("driver.interactive")
+  object conf {
+    private val app_conf: config.Config = config.ConfigFactory.load("application")
+
+    object port {
+      val http: Int = app_conf.getInt("driver.port.http")
+      val ws: Int = app_conf.getInt("driver.port.ws")
+    }
+
+    val interface: String = app_conf.getString("driver.interface")
+    val client_source: String = app_conf.getString("driver.client-source")
+    val interactive: Boolean = app_conf.getBoolean("driver.interactive")
+  }
+
+  case class CLIConfig(
+      port_http: Int = conf
+        /** EndMarker */
+        .port.http.port.http,
+      port_ws: Int = conf.port.ws,
+      interface: String = conf.interface,
+      client_source: String = conf.client_source,
+      interactive: Boolean = conf.interactive
   )
 }
